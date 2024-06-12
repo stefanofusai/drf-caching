@@ -1,0 +1,4 @@
+django
+django-redis
+django-rest-framework
+pydantic
