@@ -1,4 +1,4 @@
 django
 django-redis
-django-rest-framework
+djangorestframework
 pydantic

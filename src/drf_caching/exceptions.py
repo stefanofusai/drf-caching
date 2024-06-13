@@ -1,23 +1,46 @@
+from django.core.cache.backends.base import BaseCache
+from pydantic import ValidationError
+
+
 class CacheNotSupportedError(Exception):
-    def __init__(self, cache: str) -> None:
-        super().__init__(f"`{cache}` is not supported.")
+    """Raised when the specified cache is not supported."""
+
+    def __init__(self, cache: BaseCache) -> None:  # noqa: D107
+        super().__init__(f"`{cache.__class__.__name__}` is not supported.")
+
+
+class HeaderNotSupportedError(Exception):
+    """Raised when the specified header is not supported."""
+
+    def __init__(self, cache: BaseCache, header: str) -> None:  # noqa: D107
+        super().__init__(
+            f"`{cache.__class__.__name__}` does not support the `{header}` header."
+        )
 
 
 class InvalidArgumentError(Exception):
-    def __init__(self, error: str) -> None:
+    """Raised when an invalid argument is passed."""
+
+    def __init__(self, error: str) -> None:  # noqa: D107
         super().__init__(f"Invalid argument: {error}")
 
 
 class InvalidDataError(Exception):
-    def __init__(self, data: dict) -> None:
+    """Raised when invalid data is passed to the key."""
+
+    def __init__(self, data: dict) -> None:  # noqa: D107
         super().__init__(f"Invalid data: {data}")
 
 
 class InvalidSettingsError(Exception):
-    def __init__(self, error: str) -> None:
+    """Raised when the settings are invalid."""
+
+    def __init__(self, error: ValidationError) -> None:  # noqa: D107
         super().__init__(f"`DRF_CACHING` settings are invalid: {error}")
 
 
 class MissingSettingsError(Exception):
-    def __init__(self) -> None:
+    """Raised when the settings are missing."""
+
+    def __init__(self) -> None:  # noqa: D107
         super().__init__("Please add `DRF_CACHING` to your Django settings file.")

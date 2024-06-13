@@ -10,6 +10,8 @@ from .exceptions import InvalidArgumentError, InvalidDataError
 
 
 class BaseKey(ABC):
+    """Base class for generating cache keys based on provided parameters."""
+
     # Public methods
 
     def get_key(
@@ -20,6 +22,17 @@ class BaseKey(ABC):
         *args: Any,
         **kwargs: Any,
     ) -> str:
+        """Generate a cache key based on the provided parameters.
+
+        :param view_instance: The instance of the view class.
+        :type view_instance: APIView
+        :param view_method: The method of the view class.
+        :type view_method: Callable[..., Response]
+        :param request: The request object.
+        :type request: Request
+        :return: The generated cache key.
+        :rtype: str
+        """
         return "&".join(
             [
                 f"{k}={v}"
@@ -61,9 +74,25 @@ class BaseKey(ABC):
 
 
 class BaseKeyWithFields(BaseKey):
+    """A base key class with fields.
+
+    This class represents a key with multiple fields. It is a subclass of `BaseKey`.
+
+    :param fields: Variable number of string arguments representing the fields of the key.
+    :raises InvalidArgumentError: If any of the fields is not a string.
+    """  # noqa: E501
+
     def __init__(self, *fields: str) -> None:
+        """Initialize a Key instance with the given fields.
+
+        :param fields: Variable number of string arguments representing the fields of the key.
+        :raises InvalidArgumentError: If any of the fields is not a string.
+        """  # noqa: E501
         for field in fields:
             if not isinstance(field, str):
                 raise InvalidArgumentError(f"field must be a str, not {type(field)}.")
 
         self.fields = fields
+
+
+# TODO: implement

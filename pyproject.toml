@@ -9,7 +9,7 @@ authors = [{ "name" = "Stefano Fusai", "email" = "stefanofusai@gmail.com" }]
 description = "A simple package to handle views caching in Django Rest Framework"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["django", "django-redis", "django-rest-framework", "pydantic"]
+dependencies = ["django", "django-redis", "djangorestframework", "pydantic"]
 
 [project.urls]
 Homepage = "https://github.com/stefanofusai/drf-caching"
@@ -60,4 +60,4 @@ select = [
     "UP",
     "W",
 ]
-ignore = ["D100", "TD001", "TD002", "TD003", "TRY003"]
+ignore = ["D100", "D104", "D203", "D213", "TD001", "TD002", "TD003", "TRY003"]

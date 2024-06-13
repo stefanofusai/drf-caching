@@ -17,10 +17,8 @@ django==5.0.6
     #   djangorestframework
 django-redis==5.4.0
     # via -r requirements.in
-django-rest-framework==0.1.0
-    # via -r requirements.in
 djangorestframework==3.15.1
-    # via django-rest-framework
+    # via -r requirements.in
 pydantic==2.7.3
     # via -r requirements.in
 pydantic-core==2.18.4
