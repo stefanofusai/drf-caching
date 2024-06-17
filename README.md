@@ -14,20 +14,6 @@ To setup caching for a view, you can use the `@cache_view` decorator.
 
 ```python
 from drf_caching.cache import cache_view
-
-class MyView(APIView):
-    @cache_view()
-    def get(self, request):
-        return Response({"message": "Hello, world!"})
-```
-
-You can pass the following keyword arguments to the `@cache_view` decorator:
-
-- `timeout`: the cache timeout in seconds (can also be set on a global level using the `DRF_CACHING` settings)
-- `keys`: an iterable of keys to use to build the cache key
-
-```python
-from drf_caching.cache import cache_view
 from drf_caching.keys import GetQuerysetKey, PaginationKey, QueryParamsKey
 
 class MyView(APIView):
@@ -40,6 +26,11 @@ class MyView(APIView):
     def get(self, request):
         return Response({"message": "Hello, world!"})
 ```
+
+You can pass multiple keys to the decorator, and the cache key will be built using all of them.
+You can pass the following keyword arguments to the `@cache_view` decorator:
+
+- `timeout`: the cache timeout in seconds (can also be set on a global level using the `DRF_CACHING` setting)
 
 The following keys, available in the `drf_caching.keys` module, can be used:
 
@@ -65,7 +56,7 @@ DRF_CACHING = {
 }
 ```
 
-To disable caching for a specific view, you can set `timeout` to `0`.
+To disable caching for a specific view, or even globally, you can set `timeout` to `0`.
 
 The following settings are available:
 
