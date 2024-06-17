@@ -58,11 +58,11 @@ class Settings(BaseModel):
 
         :param v: The TIMEOUT field.
         :type v: int
-        :raises ValueError: if TIMEOUT is less than 1.
+        :raises ValueError: if TIMEOUT is less than 0.
         :return: The TIMEOUT field.
         :rtype: int
         """
-        if v < 1:
-            raise ValueError("timeout must be >= 1.")
+        if v < 0:
+            raise ValueError("timeout must be >= 0.")
 
         return v

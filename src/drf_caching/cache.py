@@ -1,13 +1,13 @@
 import hashlib
 import json
-import re
 import time
 from collections import defaultdict
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from datetime import UTC, datetime
 from functools import wraps
 from typing import Any
 
+from bs4 import BeautifulSoup
 from django.conf import settings as django_settings
 from django.core.cache import caches
 from django.core.cache.backends.db import DatabaseCache
@@ -37,22 +37,19 @@ from .settings import Settings
 class CacheView:
     """CacheView class used to cache API responses."""
 
-    def __init__(
-        self, *, timeout: int | None = None, keys: Iterable[BaseKey] | None = None
-    ) -> None:
+    def __init__(self, *keys: BaseKey, timeout: int | None = None) -> None:
         """Create an instance of the CacheView class.
 
+        :param keys: the keys used to generate the cache key.
+        :type keys: BaseKey
         :param timeout: the cache timeout, defaults to None.
         :type timeout: int | None, optional
-        :param keys: the cache keys to use, defaults to None.
-        :type keys: Iterable[BaseKey] | None, optional
         :raises CacheNotSupportedError: if the specified cache is not supported.
         :raises HeaderNotSupportedError: if the age header is passed and the specified cache does not support it.
         :raises HeaderNotSupportedError: if the age header is passed and the specified cache does not support it.
+        :raises InvalidArgumentError: if any key is not an instance of BaseKey.
         :raises InvalidArgumentError: if the timeout is not an integer.
         :raises InvalidArgumentError: if the timeout is less than 1.
-        :raises InvalidArgumentError: if the keys are not an iterable.
-        :raises InvalidArgumentError: if the keys are not an iterable of BaseKey.
         :raises InvalidArgumentError: if the timeout is neither defined in the settings nor passed as an argument.
         """  # noqa: E501
         self.settings = self._get_settings()
@@ -97,6 +94,12 @@ class CacheView:
             else [Headers.normalize(header) for header in self.settings.HEADERS]
         )
 
+        for key in keys:
+            if not isinstance(key, BaseKey):
+                raise InvalidArgumentError("key must be an instance of BaseKey.")
+
+        self.keys = keys
+
         if timeout is None and self.settings.TIMEOUT is None:
             raise InvalidArgumentError(
                 "timeout must be either defined in the settings or passed as an argument."  # noqa: E501
@@ -105,23 +108,10 @@ class CacheView:
         if timeout is not None and not isinstance(timeout, int):
             raise InvalidArgumentError("timeout must be an integer.")
 
-        if timeout is not None and timeout < 1:
-            raise InvalidArgumentError("timeout must be >= 1.")
+        if timeout is not None and timeout < 0:
+            raise InvalidArgumentError("timeout must be >= 0.")
 
         self.timeout = self.settings.TIMEOUT if timeout is None else timeout
-
-        if keys is None:
-            self.keys = []
-
-        else:
-            if not isinstance(keys, Iterable):
-                raise InvalidArgumentError("keys must be an iterable.")
-
-            for key in keys:
-                if not isinstance(key, BaseKey):
-                    raise InvalidArgumentError("keys must be an iterable of BaseKey.")
-
-            self.keys = keys
 
     def __call__(self, func: Callable[..., Response]) -> Callable[..., Response]:
         """Wrap a view function or method to enable caching.
@@ -200,11 +190,11 @@ class CacheView:
             "format": request.accepted_renderer.format,
             # Allows for multiple keys of the same type to be passed
             # withouth overwriting each other
-            "keys": defaultdict(dict),
+            "keys": defaultdict(list),
         }
 
         for key in self.keys:
-            key_dict["keys"][key.__class__.__name__].update(
+            key_dict["keys"][key.__class__.__name__].append(
                 key.get_key(view_instance, view_method, request, *args, **kwargs)
             )
 
@@ -230,9 +220,18 @@ class CacheView:
             )
 
             if response.status_code < 400:  # noqa: PLR2004
-                self._set_headers(response, Headers(age=0, x_cache=XCacheHeader.miss))
+                self._set_headers(
+                    response,
+                    Headers(
+                        age=0,
+                        cache_control=f"max-age={self.timeout}",
+                        x_cache=XCacheHeader.miss,
+                    ),
+                )
                 response.render()
-                self.cache.set(key, response, self.timeout)
+
+                if self.timeout > 0:
+                    self.cache.set(key, response, self.timeout)
 
             else:
                 response.render()
@@ -242,36 +241,15 @@ class CacheView:
                 response,
                 Headers(
                     age=self._get_age(key),
+                    cache_control=f"max-age={self.timeout}",
                     etag=key,
                     expires=self._get_expires(key),
                     x_cache=XCacheHeader.hit,
                 ),
             )
 
-            content = response.content.decode()
-
-            for header, value in response.headers.items():
-                if Headers.normalize(header) not in self.headers:
-                    continue
-
-                content = re.sub(
-                    f'<b>{header}:</b> <span class="lit">.*?</span>',
-                    f'<b>{header}:</b> <span class="lit">{value}</span>',
-                    content,
-                    count=1,
-                )
-
-                # TODO: it should also add new headers!
-                # <span class="meta nocode">
-                #     <b>HTTP 200 OK</b>
-                #     <b>Age:</b> <span class="lit">0</span>
-                #     <b>Allow:</b> <span class="lit">GET, HEAD, OPTIONS</span>
-                #     <b>Content-Type:</b> <span class="lit">application/json</span>
-                #     <b>Vary:</b> <span class="lit">Accept</span>
-                #     <b>X-Cache:</b> <span class="lit">MISS</span>
-                # </span>
-
-            response.content = content.encode()
+            if response.accepted_media_type == "text/html":
+                self._update_content(response)
 
         return response
 
@@ -295,6 +273,9 @@ class CacheView:
         if "age" in self.headers and headers.age is not None:
             response.headers["Age"] = headers.age
 
+        if "cache_control" in self.headers:
+            response.headers["Cache-Control"] = headers.cache_control
+
         if headers.x_cache == XCacheHeader.hit:
             if "etag" in self.headers:
                 response.headers["ETag"] = headers.etag
@@ -307,7 +288,26 @@ class CacheView:
         if "x_cache" in self.headers:
             response.headers["X-Cache"] = headers.x_cache.value
 
+    def _update_content(self, response: Response) -> None:
+        html = BeautifulSoup(response.content, "lxml")
+        span = html.new_tag("span", **{"class": "meta nocode"})
+        span.append(html.find("span", class_="meta nocode").find("b"))
+        span.append("\n")
+
+        for header, value in sorted(response.headers.items(), key=lambda x: x[0]):
+            tag = html.new_tag("b")
+            tag.string = f"{header}:"
+            span.append(tag)
+            span.append(" ")
+
+            tag = html.new_tag("span", **{"class": "lit"})
+            tag.string = value
+            span.append(tag)
+            span.append("\n")
+
+        span.append("\n")
+        html.find("span", class_="meta nocode").replace_with(span)
+        response.content = str(html)
+
 
 cache_view = CacheView
-
-# TODO: support calling the decorator without ()

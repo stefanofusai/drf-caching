@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.cache.backends.base import BaseCache
 from pydantic import ValidationError
 
@@ -29,7 +31,7 @@ class InvalidDataError(Exception):
     """Raised when invalid data is passed to the key."""
 
     def __init__(self, data: dict) -> None:  # noqa: D107
-        super().__init__(f"Invalid data: {data}")
+        super().__init__(f"Data must be a dictionary with string keys, not {data}.")
 
 
 class InvalidSettingsError(Exception):
@@ -44,3 +46,10 @@ class MissingSettingsError(Exception):
 
     def __init__(self) -> None:  # noqa: D107
         super().__init__("Please add `DRF_CACHING` to your Django settings file.")
+
+
+class UnsupportedPaginatorError(Exception):
+    """Raised when the specified paginator is not supported."""
+
+    def __init__(self, paginator: Any) -> None:  # noqa: D107
+        super().__init__(f"`{paginator}` is not supported.")

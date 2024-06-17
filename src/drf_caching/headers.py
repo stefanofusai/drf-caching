@@ -11,9 +11,6 @@ class XCacheHeader(str, Enum):
     miss = "MISS"
 
 
-# TODO: add more headers?
-
-
 class Headers(BaseModel):
     """Headers class used to parse the headers from the Django settings file.
 
@@ -25,6 +22,7 @@ class Headers(BaseModel):
     """
 
     age: int | None
+    cache_control: str
     etag: str | None = None
     expires: datetime | None = None
     x_cache: XCacheHeader
