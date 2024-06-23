@@ -207,7 +207,7 @@ class CacheView:
         key = self._get_key(view_instance, view_method, request, *args, **kwargs)
 
         try:
-            accepted_media_type, status, content, headers = self.cache.get(key)
+            status, content, headers, accepted_media_type = self.cache.get(key)
 
         except TypeError:
             response = self._get_response_from_view(
@@ -216,7 +216,7 @@ class CacheView:
 
         else:
             response = self._get_response_from_cache(
-                key, accepted_media_type, status, content, headers
+                key, status, content, headers, accepted_media_type
             )
 
         return response
@@ -224,10 +224,10 @@ class CacheView:
     def _get_response_from_cache(  # noqa: PLR0913
         self,
         key: str,
-        accepted_media_type: str,
         status: int,
         content: bytes,
         headers: dict[str, str],
+        accepted_media_type: str,
     ) -> HttpResponse:
         if "age" in self.headers:
             age = self._get_age(key)
@@ -305,10 +305,10 @@ class CacheView:
                 self.cache.set(
                     key,
                     (
-                        response.accepted_media_type,
                         response.status_code,
                         response.content,
                         response.headers,
+                        response.accepted_media_type,
                     ),
                     self.timeout,
                 )
