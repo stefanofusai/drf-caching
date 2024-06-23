@@ -3,7 +3,6 @@ import json
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from datetime import UTC, datetime
 from functools import wraps
 from typing import Any
 
@@ -160,12 +159,10 @@ class CacheView:
             case _:
                 return age
 
-    def _get_expires(self, key: str) -> datetime | None:
+    def _get_expires(self, key: str) -> float | None:
         return {
             DatabaseCache: None,
-            DjangoRedisCache: lambda: datetime.fromtimestamp(
-                time.time() + self.cache.ttl(key), tz=UTC
-            ),
+            DjangoRedisCache: lambda: time.time() + self.cache.ttl(key),
             DummyCache: lambda: None,
             FileBasedCache: None,
             LocMemCache: lambda: self.cache._expire_info.get(self.cache.make_key(key)),  # noqa: SLF001
