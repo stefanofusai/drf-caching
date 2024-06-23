@@ -133,10 +133,10 @@ class CacheView:
 
     def _get_age(self, key: str) -> int | None:
         age = {
-            DatabaseCache: None,
+            DatabaseCache: lambda: None,
             DjangoRedisCache: lambda: self.timeout - self.cache.ttl(key),
             DummyCache: lambda: None,
-            FileBasedCache: None,
+            FileBasedCache: lambda: None,
             LocMemCache: lambda: round(
                 self.timeout
                 - (
@@ -144,8 +144,8 @@ class CacheView:
                     - time.time()
                 )
             ),
-            PyLibMCCache: None,
-            PyMemcacheCache: None,
+            PyLibMCCache: lambda: None,
+            PyMemcacheCache: lambda: None,
             RedisCache: lambda: None,
         }[type(self.cache)]()
 
@@ -161,13 +161,13 @@ class CacheView:
 
     def _get_expires(self, key: str) -> float | None:
         return {
-            DatabaseCache: None,
+            DatabaseCache: lambda: None,
             DjangoRedisCache: lambda: time.time() + self.cache.ttl(key),
             DummyCache: lambda: None,
-            FileBasedCache: None,
+            FileBasedCache: lambda: None,
             LocMemCache: lambda: self.cache._expire_info.get(self.cache.make_key(key)),  # noqa: SLF001
-            PyLibMCCache: None,
-            PyMemcacheCache: None,
+            PyLibMCCache: lambda: None,
+            PyMemcacheCache: lambda: None,
             RedisCache: lambda: None,
         }[type(self.cache)]()
 
