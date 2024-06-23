@@ -151,9 +151,6 @@ class CacheView:
         }[type(self.cache)]()
 
         match age:
-            case None:
-                return None
-
             case 0:
                 return 1
 
