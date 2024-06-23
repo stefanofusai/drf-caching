@@ -235,19 +235,19 @@ class CacheView:
             if age is not None:
                 headers["Age"] = age
 
-        if "cache-control" in self.headers:
+        if "cache-control" in self.headers and "cache-control" not in headers:
             headers["Cache-Control"] = f"max-age={self.timeout}"
 
-        if "etag" in self.headers:
+        if "etag" in self.headers and "etag" not in headers:
             headers["ETag"] = key
 
-        if "expires" in self.headers:
+        if "expires" in self.headers and "expires" not in headers:
             expires = self._get_expires(key)
 
             if expires is not None:
                 headers["Expires"] = expires
 
-        if "x-cache" in self.headers:
+        if "x-cache" in self.headers and "x-cache" not in headers:
             headers["X-Cache"] = "HIT"
 
         if accepted_media_type == "text/html":
