@@ -1,7 +1,7 @@
+from typing import Literal
+
 from django.core.cache import caches
 from pydantic import BaseModel, field_validator
-
-from .headers import Headers
 
 
 class Settings(BaseModel):
@@ -12,7 +12,13 @@ class Settings(BaseModel):
     """
 
     CACHE: str | None = "default"
-    HEADERS: list[str] | None = None
+    HEADERS: list[Literal["age", "cache-control", "etag", "expires", "x-cache"]] = [
+        "age",
+        "cache-control",
+        "etag",
+        "expires",
+        "x-cache",
+    ]
     TIMEOUT: int | None = None
 
     @field_validator("CACHE")
@@ -28,26 +34,6 @@ class Settings(BaseModel):
         """
         if v not in caches:
             raise ValueError(f"Cache `{v}` not found in Django settings.")
-
-        return v
-
-    @field_validator("HEADERS")
-    @classmethod
-    def validate_headers(cls, v: list[str] | None) -> list[str] | None:
-        """Validate the HEADERS field.
-
-        :param v: The HEADERS field.
-        :type v: Iterable[str] | None
-        :raises ValueError: if header is not supported.
-        :return: The HEADERS field.
-        :rtype: Iterable[str] | None
-        """
-        if v is None:
-            return v
-
-        for header in v:
-            if Headers.normalize(header) not in Headers.model_fields:
-                raise ValueError(f"Header `{header}` is not supported.")
 
         return v
 

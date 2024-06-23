@@ -3,6 +3,7 @@ import json
 import time
 from collections import defaultdict
 from collections.abc import Callable
+from datetime import UTC, datetime
 from functools import wraps
 from typing import Any
 
@@ -15,6 +16,7 @@ from django.core.cache.backends.filebased import FileBasedCache
 from django.core.cache.backends.locmem import LocMemCache
 from django.core.cache.backends.memcached import PyLibMCCache, PyMemcacheCache
 from django.core.cache.backends.redis import RedisCache
+from django.http.response import HttpResponse
 from django_redis.cache import RedisCache as DjangoRedisCache
 from pydantic import ValidationError
 from rest_framework.request import Request
@@ -28,7 +30,6 @@ from .exceptions import (
     InvalidSettingsError,
     MissingSettingsError,
 )
-from .headers import Headers, XCacheHeader
 from .keys import BaseKey
 from .settings import Settings
 
@@ -82,16 +83,12 @@ class CacheView:
             and self.settings.HEADERS is not None
         ):
             if "age" in self.settings.HEADERS:
-                raise HeaderNotSupportedError(self.cache, "Age")
+                raise HeaderNotSupportedError(self.cache, "age")
 
             if "expires" in self.settings.HEADERS:
-                raise HeaderNotSupportedError(self.cache, "Expires")
+                raise HeaderNotSupportedError(self.cache, "expires")
 
-        self.headers = (
-            Headers.model_fields
-            if self.settings.HEADERS is None
-            else [Headers.normalize(header) for header in self.settings.HEADERS]
-        )
+        self.headers = self.settings.HEADERS
 
         for key in keys:
             if not isinstance(key, BaseKey):
@@ -159,13 +156,18 @@ class CacheView:
             case _:
                 return age
 
-    def _get_expires(self, key: str) -> float | None:
+    def _get_expires(self, key: str) -> str | None:
         return {
             DatabaseCache: lambda: None,
-            DjangoRedisCache: lambda: time.time() + self.cache.ttl(key),
+            DjangoRedisCache: lambda: datetime.fromtimestamp(
+                time.time() + self.cache.ttl(key), tz=UTC
+            ).strftime("%a, %d %b %Y %H:%M:%S GMT"),
             DummyCache: lambda: None,
             FileBasedCache: lambda: None,
-            LocMemCache: lambda: self.cache._expire_info.get(self.cache.make_key(key)),  # noqa: SLF001
+            LocMemCache: lambda: datetime.fromtimestamp(
+                self.cache._expire_info.get(self.cache.make_key(key)),  # noqa: SLF001
+                tz=UTC,
+            ).strftime("%a, %d %b %Y %H:%M:%S GMT"),
             PyLibMCCache: lambda: None,
             PyMemcacheCache: lambda: None,
             RedisCache: lambda: None,
@@ -201,49 +203,118 @@ class CacheView:
         request: Request,
         *args: Any,
         **kwargs: Any,
-    ) -> Response:
+    ) -> HttpResponse | Response:
         key = self._get_key(view_instance, view_method, request, *args, **kwargs)
-        response = self.cache.get(key)
 
-        if response is None:
-            response = view_instance.finalize_response(
-                request,
-                view_method(view_instance, request, *args, **kwargs),
-                *args,
-                **kwargs,
+        try:
+            accepted_media_type, status, content, headers = self.cache.get(key)
+
+        except TypeError:
+            response = self._get_response_from_view(
+                key, request, view_instance, view_method, args, kwargs
             )
-
-            if response.status_code < 400:  # noqa: PLR2004
-                self._set_headers(
-                    response,
-                    Headers(
-                        age=0,
-                        cache_control=f"max-age={self.timeout}",
-                        x_cache=XCacheHeader.miss,
-                    ),
-                )
-                response.render()
-
-                if self.timeout > 0:
-                    self.cache.set(key, response, self.timeout)
-
-            else:
-                response.render()
 
         else:
-            self._set_headers(
-                response,
-                Headers(
-                    age=self._get_age(key),
-                    cache_control=f"max-age={self.timeout}",
-                    etag=key,
-                    expires=self._get_expires(key),
-                    x_cache=XCacheHeader.hit,
-                ),
+            response = self._get_response_from_cache(
+                key, accepted_media_type, status, content, headers
             )
 
-            if response.accepted_media_type == "text/html":
-                self._update_content(response)
+        return response
+
+    def _get_response_from_cache(  # noqa: PLR0913
+        self,
+        key: str,
+        accepted_media_type: str,
+        status: int,
+        content: bytes,
+        headers: dict[str, str],
+    ) -> HttpResponse:
+        if "age" in self.headers:
+            age = self._get_age(key)
+
+            if age is not None:
+                headers["Age"] = age
+
+        if "cache-control" in self.headers:
+            headers["Cache-Control"] = f"max-age={self.timeout}"
+
+        if "etag" in self.headers:
+            headers["ETag"] = key
+
+        if "expires" in self.headers:
+            expires = self._get_expires(key)
+
+            if expires is not None:
+                headers["Expires"] = expires
+
+        if "x-cache" in self.headers:
+            headers["X-Cache"] = "HIT"
+
+        if accepted_media_type == "text/html":
+            html = BeautifulSoup(content, "lxml")
+            span = html.new_tag("span", **{"class": "meta nocode"})
+            span.append(html.find("span", class_="meta nocode").find("b"))
+            span.append("\n")
+
+            for header, value in sorted(headers.items(), key=lambda x: x[0]):
+                tag = html.new_tag("b")
+                tag.string = f"{header}:"
+                span.append(tag)
+                span.append(" ")
+
+                tag = html.new_tag("span", **{"class": "lit"})
+                tag.string = value
+                span.append(tag)
+                span.append("\n")
+
+            span.append("\n")
+            html.find("span", class_="meta nocode").replace_with(span)
+            content = str(html)
+
+        return HttpResponse(content, status=status, headers=headers)
+
+    def _get_response_from_view(  # noqa: PLR0913
+        self,
+        key: str,
+        request: Request,
+        view_instance: APIView,
+        view_method: Callable[..., Response],
+        args: Any,
+        kwargs: Any,
+    ) -> Response:
+        response = view_instance.finalize_response(
+            request,
+            view_method(view_instance, request, *args, **kwargs),
+            *args,
+            **kwargs,
+        )
+
+        if response.status_code < 400:  # noqa: PLR2004
+            if "age" in self.headers:
+                response.headers["Age"] = 0
+
+            if "cache-control" in self.headers:
+                response.headers["Cache-Control"] = f"max-age={self.timeout}"
+
+            if "x-cache" in self.headers:
+                response.headers["X-Cache"] = "MISS"
+
+            response.render()
+
+            if self.timeout > 0:
+                self.cache.set(
+                    key,
+                    (
+                        response.accepted_media_type,
+                        response.status_code,
+                        response.content,
+                        response.headers,
+                    ),
+                    self.timeout,
+                )
+
+        else:
+            response.render()
 
         return response
 
@@ -262,46 +333,6 @@ class CacheView:
 
         except ValidationError as e:
             raise InvalidSettingsError(e) from None
-
-    def _set_headers(self, response: Response, headers: Headers) -> None:
-        if "age" in self.headers and headers.age is not None:
-            response.headers["Age"] = headers.age
-
-        if "cache_control" in self.headers:
-            response.headers["Cache-Control"] = headers.cache_control
-
-        if headers.x_cache == XCacheHeader.hit:
-            if "etag" in self.headers:
-                response.headers["ETag"] = headers.etag
-
-            if "expires" in self.headers and headers.expires is not None:
-                response.headers["Expires"] = headers.expires.strftime(
-                    "%a, %d %b %Y %H:%M:%S GMT"
-                )
-
-        if "x_cache" in self.headers:
-            response.headers["X-Cache"] = headers.x_cache.value
-
-    def _update_content(self, response: Response) -> None:
-        html = BeautifulSoup(response.content, "lxml")
-        span = html.new_tag("span", **{"class": "meta nocode"})
-        span.append(html.find("span", class_="meta nocode").find("b"))
-        span.append("\n")
-
-        for header, value in sorted(response.headers.items(), key=lambda x: x[0]):
-            tag = html.new_tag("b")
-            tag.string = f"{header}:"
-            span.append(tag)
-            span.append(" ")
-
-            tag = html.new_tag("span", **{"class": "lit"})
-            tag.string = value
-            span.append(tag)
-            span.append("\n")
-
-        span.append("\n")
-        html.find("span", class_="meta nocode").replace_with(span)
-        response.content = str(html)
 
 
 cache_view = CacheView

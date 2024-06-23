@@ -61,7 +61,7 @@ To disable caching for a specific view, or even globally, you can set `timeout` 
 The following settings are available:
 
 - `CACHE`: the cache to use (defaults to `default`)
-- `HEADERS`: a list of headers to include in the cache key (by default the following headers are included: `Age`, `Cache-Control`, `ETag`, `Expires`, `X-Cache`)
+- `HEADERS`: a list of lowercase headers to include in the cache key (by default the following headers are included: `age`, `cache-control`, `etag`, `expires`, `x-cache`)
 - `TIMEOUT`: the default cache timeout in seconds
 
 To create your own cache key, you can subclass the `BaseKey` and `BaseKeyWithFields` classes and implement the `_get_data` method.
