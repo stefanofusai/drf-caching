@@ -247,7 +247,9 @@ class CacheView:
             if expires is not None:
                 headers["Expires"] = expires
 
-        if "x-cache" in self.headers and "x-cache" not in headers:
+        if "x-cache" in self.headers and (
+            "x-cache" not in headers or headers["x-cache"] == "MISS"
+        ):
             headers["X-Cache"] = "HIT"
 
         if accepted_media_type == "text/html":
