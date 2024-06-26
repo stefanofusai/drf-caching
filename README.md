@@ -35,7 +35,7 @@ You can pass the following keyword arguments to the `@cache_view` decorator:
 The following keys, available in the `drf_caching.keys` module, can be used:
 
 - `GetObjectKey`: the cache key will be built using the view's get_object method
-- `GetQuerylistKey`: the cache key will be built using the view's get_querylist method from the django-rest-multiple-models package
+- `GetQuerylistKey`: the cache key will be built using the view's get_querylist method from [django-rest-multiple-models](https://github.com/MattBroach/DjangoRestMultipleModels)
 - `GetQuerysetKey`: the cache key will be built using the view's get_queryset method
 - `HeadersKey`: the cache key will be built using the request's headers
 - `KwargsKey`: the cache key will be built using the request's kwargs
