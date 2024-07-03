@@ -19,9 +19,9 @@ djangorestframework==3.15.1
     # via -r requirements.in
 lxml==5.2.2
     # via -r requirements.in
-pydantic==2.7.4
+pydantic==2.8.1
     # via -r requirements.in
-pydantic-core==2.18.4
+pydantic-core==2.20.1
     # via pydantic
 redis==5.0.5
     # via django-redis
