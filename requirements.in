@@ -3,4 +3,5 @@ django
 django-redis
 djangorestframework
 lxml
+pre-commit
 pydantic
