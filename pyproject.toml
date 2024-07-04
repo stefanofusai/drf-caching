@@ -23,7 +23,7 @@ Homepage = "https://github.com/stefanofusai/drf-caching"
 Repository = "https://github.com/stefanofusai/drf-caching"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 
 [tool.ruff.lint]
