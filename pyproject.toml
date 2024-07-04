@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "drf-caching"
-version = "1.0.6"
+version = "1.0.7"
 authors = [{ "name" = "Stefano Fusai", "email" = "stefanofusai@gmail.com" }]
 description = "A simple package to handle views caching in Django Rest Framework"
 readme = "README.md"
