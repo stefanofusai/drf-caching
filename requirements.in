@@ -5,3 +5,4 @@ djangorestframework
 lxml
 pre-commit
 pydantic
+ruff
