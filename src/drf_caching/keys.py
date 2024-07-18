@@ -260,7 +260,7 @@ class QueryParamsKey(BaseKeyWithFields):
         *args: Any,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        return {field: request.query_params.get(field) for field in self.fields}
+        return {field: request.query_params.getlist(field) for field in self.fields}
 
 
 class UserKey(BaseKey):
