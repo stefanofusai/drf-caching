@@ -221,7 +221,7 @@ class CacheView:
 
         return response
 
-    def _get_response_from_cache(  # noqa: PLR0913
+    def _get_response_from_cache(
         self,
         key: str,
         status: int,
@@ -275,7 +275,7 @@ class CacheView:
 
         return HttpResponse(content, status=status, headers=headers)
 
-    def _get_response_from_view(  # noqa: PLR0913
+    def _get_response_from_view(
         self,
         key: str,
         request: Request,
