@@ -13,8 +13,7 @@ pip install drf-caching
 To setup caching for a view, you can use the `@cache_view` decorator.
 
 ```python
-from drf_caching.cache import cache_view
-from drf_caching.keys import GetQuerysetKey, PaginationKey, QueryParamsKey
+from drf_caching import cache_view, GetQuerysetKey, PaginationKey, QueryParamsKey
 
 class MyView(APIView):
     @cache_view(
@@ -67,7 +66,7 @@ The following settings are available:
 To create your own cache key, you can subclass the `BaseKey` and `BaseKeyWithFields` classes and implement the `_get_data` method.
 
 ```python
-from drf_caching.keys import BaseKey, BaseKeyWithFields
+from drf_caching import BaseKey, BaseKeyWithFields
 
 class CustomKey(BaseKey):
     def _get_data(self, view_instance, view_method, request, *args, **kwargs):
