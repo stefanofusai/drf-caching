@@ -205,18 +205,20 @@ class CacheView:
         **kwargs: Any,
     ) -> HttpResponse | Response:
         key = self._get_key(view_instance, view_method, request, *args, **kwargs)
+        response_quadruple = self.cache.get(key)
 
-        try:
-            status, content, headers, accepted_media_type = self.cache.get(key)
-
-        except TypeError:
+        if response_quadruple is None:
             response = self._get_response_from_view(
                 key, request, view_instance, view_method, args, kwargs
             )
 
         else:
             response = self._get_response_from_cache(
-                key, status, content, headers, accepted_media_type
+                key,
+                response_quadruple[0],
+                response_quadruple[1],
+                response_quadruple[2],
+                response_quadruple[3],
             )
 
         return response
