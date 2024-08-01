@@ -92,20 +92,22 @@ class CacheView:
 
         for key in keys:
             if not isinstance(key, BaseKey):
-                raise InvalidArgumentError("key must be an instance of BaseKey.")
+                msg = "key must be an instance of BaseKey."
+                raise InvalidArgumentError(msg)
 
         self.keys = keys
 
         if timeout is None and self.settings.TIMEOUT is None:
-            raise InvalidArgumentError(
-                "timeout must be either defined in the settings or passed as an argument."  # noqa: E501
-            )
+            msg = "timeout must be either defined in the settings or passed as an argument."  # NOQA: E501
+            raise InvalidArgumentError(msg)
 
         if timeout is not None and not isinstance(timeout, int):
-            raise InvalidArgumentError("timeout must be an integer.")
+            msg = "timeout must be an integer."
+            raise InvalidArgumentError(msg)
 
         if timeout is not None and timeout < 0:
-            raise InvalidArgumentError("timeout must be >= 0.")
+            msg = "timeout must be >= 0."
+            raise InvalidArgumentError(msg)
 
         self.timeout = self.settings.TIMEOUT if timeout is None else timeout
 
@@ -330,7 +332,8 @@ class CacheView:
             raise MissingSettingsError from None
 
         if not isinstance(settings, dict):
-            raise InvalidSettingsError("settings must be a dictionary.")
+            msg = "settings must be a dictionary."
+            raise InvalidSettingsError(msg)
 
         try:
             return Settings(**settings)

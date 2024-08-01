@@ -100,7 +100,8 @@ class BaseKeyWithFields(BaseKey):
         """  # noqa: E501
         for field in fields:
             if not isinstance(field, str):
-                raise InvalidArgumentError(f"field must be a str, not {type(field)}.")
+                msg = f"field must be a str, not {type(field)}."
+                raise InvalidArgumentError(msg)
 
         self.fields = fields
 

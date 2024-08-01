@@ -27,44 +27,5 @@ python_version = "3.12"
 strict = true
 
 [tool.ruff.lint]
-select = [
-    "B",
-    "C4",
-    "D",
-    "DTZ",
-    "D1",
-    "E",
-    "ERA",
-    "F",
-    "FLY",
-    "G",
-    "I",
-    "ICN",
-    "INT",
-    "ISC",
-    "LOG",
-    "N",
-    "NPY",
-    "PD",
-    "PERF",
-    "PIE",
-    "PL",
-    "PT",
-    "PTH",
-    "PYI",
-    "Q",
-    "RET",
-    "RSE",
-    "RUF",
-    "S",
-    "SIM",
-    "SLF",
-    "T10",
-    "T20",
-    "TD",
-    "TID",
-    "TRY",
-    "UP",
-    "W",
-]
-ignore = ["D100", "D104", "D203", "D213", "TD001", "TD002", "TD003", "TRY003"]
+select = ["ALL"]
+ignore = ["ANN401", "ARG002", "COM812", "D100", "D104", "D203", "D213", "TD001", "TD002", "TD003", "TRY003"]
