@@ -1,6 +1,6 @@
 # drf-caching
 
-A simple package to handle views caching in Django Rest Framework.
+Handle views caching in Django Rest Framework.
 
 ## Installation
 
