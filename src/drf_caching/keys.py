@@ -34,7 +34,8 @@ class BaseKey(ABC):
         *args: Any,
         **kwargs: Any,
     ) -> str:
-        """Generate a cache key based on the provided parameters.
+        """
+        Generate a cache key based on the provided parameters.
 
         :param view_instance: The instance of the view class.
         :type view_instance: APIView
@@ -84,20 +85,22 @@ class BaseKey(ABC):
 
 
 class BaseKeyWithFields(BaseKey):
-    """A base key class with fields.
+    """
+    A base key class with fields.
 
     This class represents a key with multiple fields. It is a subclass of `BaseKey`.
 
     :param fields: Variable number of string arguments representing the fields of the key.
     :raises InvalidArgumentError: If any of the fields is not a string.
-    """  # noqa: E501
+    """
 
     def __init__(self, *fields: str) -> None:
-        """Initialize a Key instance with the given fields.
+        """
+        Initialize a Key instance with the given fields.
 
         :param fields: Variable number of string arguments representing the fields of the key.
         :raises InvalidArgumentError: If any of the fields is not a string.
-        """  # noqa: E501
+        """
         for field in fields:
             if not isinstance(field, str):
                 msg = f"field must be a str, not {type(field)}."
@@ -133,7 +136,7 @@ class GetObjectKey(BaseKey):
 
 
 class GetQuerylistKey(BaseKey):
-    """A key class for generating cache keys based on the views' querylist from the django-rest-multiple-models package."""  # noqa: E501
+    """A key class for generating cache keys based on the views' querylist from the django-rest-multiple-models package."""
 
     def _get_data(
         self,
@@ -200,7 +203,7 @@ class KwargsKey(BaseKeyWithFields):
 
 
 class LookupFieldKey(BaseKey):
-    """A key class for generating cache keys based on the views' kwarg matching the lookup field."""  # noqa: E501
+    """A key class for generating cache keys based on the views' kwarg matching the lookup field."""
 
     def _get_data(
         self,
@@ -214,7 +217,7 @@ class LookupFieldKey(BaseKey):
 
 
 class PaginationKey(BaseKey):
-    """A key class for generating cache keys based on the request pagination parameters."""  # noqa: E501
+    """A key class for generating cache keys based on the request pagination parameters."""
 
     def _get_data(
         self,

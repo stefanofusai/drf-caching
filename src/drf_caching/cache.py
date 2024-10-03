@@ -38,7 +38,8 @@ class CacheView:
     """CacheView class used to cache API responses."""
 
     def __init__(self, *keys: BaseKey, timeout: int | None = None) -> None:
-        """Create an instance of the CacheView class.
+        """
+        Create an instance of the CacheView class.
 
         :param keys: the keys used to generate the cache key.
         :type keys: BaseKey
@@ -51,7 +52,7 @@ class CacheView:
         :raises InvalidArgumentError: if the timeout is not an integer.
         :raises InvalidArgumentError: if the timeout is less than 1.
         :raises InvalidArgumentError: if the timeout is neither defined in the settings nor passed as an argument.
-        """  # noqa: E501
+        """
         self.settings = self._get_settings()
         cache = caches[self.settings.CACHE]
 
@@ -98,7 +99,7 @@ class CacheView:
         self.keys = keys
 
         if timeout is None and self.settings.TIMEOUT is None:
-            msg = "timeout must be either defined in the settings or passed as an argument."  # NOQA: E501
+            msg = "timeout must be either defined in the settings or passed as an argument."
             raise InvalidArgumentError(msg)
 
         if timeout is not None and not isinstance(timeout, int):
@@ -112,7 +113,8 @@ class CacheView:
         self.timeout = self.settings.TIMEOUT if timeout is None else timeout
 
     def __call__(self, func: Callable[..., Response]) -> Callable[..., Response]:
-        """Wrap a view function or method to enable caching.
+        """
+        Wrap a view function or method to enable caching.
 
         :param func: The view function or method to be wrapped.
         :type func: Callable[..., Response]
@@ -295,7 +297,7 @@ class CacheView:
             **kwargs,
         )
 
-        if response.status_code < 400:  # noqa: PLR2004
+        if response.status_code < 400:
             if "age" in self.headers:
                 response.headers["Age"] = 0
 
