@@ -5,7 +5,8 @@ from pydantic import BaseModel, field_validator
 
 
 class Settings(BaseModel):
-    """Settings class used to parse the settings from the Django settings file.
+    """
+    Settings class used to parse the settings from the Django settings file.
 
     :param BaseModel: Pydantic BaseModel.
     :type BaseModel: BaseModel
@@ -24,7 +25,8 @@ class Settings(BaseModel):
     @field_validator("CACHE")
     @classmethod
     def validate_cache(cls, v: str) -> str:
-        """Validate the CACHE field.
+        """
+        Validate the CACHE field.
 
         :param v: The CACHE field.
         :type v: str
@@ -41,7 +43,8 @@ class Settings(BaseModel):
     @field_validator("TIMEOUT")
     @classmethod
     def validate_timeout(cls, v: int) -> int:
-        """Validate the TIMEOUT field.
+        """
+        Validate the TIMEOUT field.
 
         :param v: The TIMEOUT field.
         :type v: int
