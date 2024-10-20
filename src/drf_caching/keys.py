@@ -188,6 +188,20 @@ class LookupFieldKey(BaseKey):
         return {"lookup_field": kwargs.get(view_instance.lookup_field)}
 
 
+class RequestDataKey(BaseKey):
+    """A key class for generating cache keys based on the request's data."""
+
+    def _get_data(
+        self,
+        view_instance: APIView,
+        view_method: Callable[..., Response],
+        request: Request,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        return dict(sorted(request.data.items()))
+
+
 class RequestHeadersKey(BaseKeyWithFields):
     """A key class for generating cache keys based on the request's headers."""
 
