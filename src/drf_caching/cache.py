@@ -189,7 +189,7 @@ class CacheView:
             "view_id": f"{view_method.__module__}.{view_method.__qualname__}",
             "format": request.accepted_renderer.format,
             # Allows for multiple keys of the same type to be passed
-            # withouth overwriting each other
+            # without overwriting each other
             "keys": defaultdict(list),
         }
 
