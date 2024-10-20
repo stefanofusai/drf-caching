@@ -10,7 +10,7 @@ description = "Handle views caching in Django Rest Framework."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "bs4",
+    "beautifulsoup4",
     "django",
     "django-redis",
     "djangorestframework",
