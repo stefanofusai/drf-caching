@@ -174,34 +174,6 @@ class GetQuerysetKey(BaseKey):
         }
 
 
-class HeadersKey(BaseKeyWithFields):
-    """A key class for generating cache keys based on the request headers."""
-
-    def _get_data(
-        self,
-        view_instance: APIView,
-        view_method: Callable[..., Response],
-        request: Request,
-        *args: Any,
-        **kwargs: Any,
-    ) -> dict[str, Any]:
-        return {field: request.headers.get(field) for field in self.fields}
-
-
-class KwargsKey(BaseKeyWithFields):
-    """A key class for generating cache keys based on the request keyword arguments."""
-
-    def _get_data(
-        self,
-        view_instance: APIView,
-        view_method: Callable[..., Response],
-        request: Request,
-        *args: Any,
-        **kwargs: Any,
-    ) -> dict[str, Any]:
-        return {field: kwargs.get(field) for field in self.fields}
-
-
 class LookupFieldKey(BaseKey):
     """A key class for generating cache keys based on the views' kwarg matching the lookup field."""
 
@@ -216,8 +188,50 @@ class LookupFieldKey(BaseKey):
         return {"lookup_field": kwargs.get(view_instance.lookup_field)}
 
 
-class PaginationKey(BaseKey):
-    """A key class for generating cache keys based on the request pagination parameters."""
+class RequestDataKey(BaseKey):
+    """A key class for generating cache keys based on the request's data."""
+
+    def _get_data(
+        self,
+        view_instance: APIView,
+        view_method: Callable[..., Response],
+        request: Request,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        return dict(sorted(request.data.items()))
+
+
+class RequestHeadersKey(BaseKeyWithFields):
+    """A key class for generating cache keys based on the request's headers."""
+
+    def _get_data(
+        self,
+        view_instance: APIView,
+        view_method: Callable[..., Response],
+        request: Request,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        return {field: request.headers.get(field) for field in self.fields}
+
+
+class RequestKwargsKey(BaseKeyWithFields):
+    """A key class for generating cache keys based on the request's keyword arguments."""
+
+    def _get_data(
+        self,
+        view_instance: APIView,
+        view_method: Callable[..., Response],
+        request: Request,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        return {field: kwargs.get(field) for field in self.fields}
+
+
+class RequestPaginationKey(BaseKey):
+    """A key class for generating cache keys based on the request's pagination parameters."""
 
     def _get_data(
         self,
@@ -253,8 +267,8 @@ class PaginationKey(BaseKey):
         return data
 
 
-class QueryParamsKey(BaseKeyWithFields):
-    """A key class for generating cache keys based on the request query parameters."""
+class RequestQueryParamsKey(BaseKeyWithFields):
+    """A key class for generating cache keys based on the request's query parameters."""
 
     def _get_data(
         self,
@@ -267,8 +281,8 @@ class QueryParamsKey(BaseKeyWithFields):
         return {field: request.query_params.getlist(field) for field in self.fields}
 
 
-class UserKey(BaseKey):
-    """A key class for generating cache keys based on the request user."""
+class RequestUserKey(BaseKey):
+    """A key class for generating cache keys based on the request's user."""
 
     def _get_data(
         self,
