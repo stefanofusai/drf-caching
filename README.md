@@ -36,12 +36,12 @@ The following keys, available in the `drf_caching.keys` module, can be used:
 - `GetObjectKey`: the cache key will be built using the view's get_object method
 - `GetQuerylistKey`: the cache key will be built using the view's get_querylist method from [django-rest-multiple-models](https://github.com/MattBroach/DjangoRestMultipleModels)
 - `GetQuerysetKey`: the cache key will be built using the view's get_queryset method
-- `HeadersKey`: the cache key will be built using the request's headers
-- `KwargsKey`: the cache key will be built using the request's kwargs
 - `LookupFieldKey`: the cache key will be built using the view's kwarg matching the lookup field
-- `PaginationKey`: the cache key will be built using the request's pagination parameters
-- `QueryParamsKey`: the cache key will be built using the request's query parameters
-- `UserKey`: the cache key will be built using the request's user
+- `RequestHeadersKey`: the cache key will be built using the request's headers
+- `RequestKwargsKey`: the cache key will be built using the request's kwargs
+- `RequestPaginationKey`: the cache key will be built using the request's pagination parameters
+- `RequestQueryParamsKey`: the cache key will be built using the request's query parameters
+- `RequestUserKey`: the cache key will be built using the request's user
 
 If no keys are passed, the cache key will be built using the view name and the request's format.
 

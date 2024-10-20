@@ -5,12 +5,12 @@ from .keys import (
     GetObjectKey,
     GetQuerylistKey,
     GetQuerysetKey,
-    HeadersKey,
-    KwargsKey,
     LookupFieldKey,
-    PaginationKey,
-    QueryParamsKey,
-    UserKey,
+    RequestHeadersKey,
+    RequestKwargsKey,
+    RequestPaginationKey,
+    RequestQueryParamsKey,
+    RequestUserKey,
 )
 
 __all__ = [
@@ -20,10 +20,10 @@ __all__ = [
     "GetObjectKey",
     "GetQuerylistKey",
     "GetQuerysetKey",
-    "HeadersKey",
-    "KwargsKey",
+    "RequestHeadersKey",
+    "RequestKwargsKey",
     "LookupFieldKey",
-    "PaginationKey",
-    "QueryParamsKey",
-    "UserKey",
+    "RequestPaginationKey",
+    "RequestQueryParamsKey",
+    "RequestUserKey",
 ]
