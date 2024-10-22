@@ -14,17 +14,15 @@ class CacheNotSupportedError(Exception):
 class HeaderNotSupportedError(Exception):
     """Raised when the specified header is not supported."""
 
-    def __init__(self, cache: BaseCache, header: str) -> None:  # noqa: D107
-        super().__init__(
-            f"`{cache.__class__.__name__}` does not support the `{header}` header."
-        )
+    def __init__(self, header: str, reason: str) -> None:  # noqa: D107
+        super().__init__(f"`The `{header}` header is not supported: {reason}.")
 
 
 class InvalidArgumentError(Exception):
     """Raised when an invalid argument is passed."""
 
     def __init__(self, error: str) -> None:  # noqa: D107
-        super().__init__(f"Invalid argument: {error}")
+        super().__init__(f"Invalid argument: {error}.")
 
 
 class InvalidDataError(Exception):
@@ -38,7 +36,7 @@ class InvalidSettingsError(Exception):
     """Raised when the settings are invalid."""
 
     def __init__(self, error: ValidationError) -> None:  # noqa: D107
-        super().__init__(f"`DRF_CACHING` settings are invalid: {error}")
+        super().__init__(f"`DRF_CACHING` settings are invalid: {error}.")
 
 
 class MissingSettingsError(Exception):

@@ -31,20 +31,24 @@ from .exceptions import (
     MissingSettingsError,
 )
 from .keys import BaseKey
+from .sentinels import Sentinel
 from .settings import Settings
+from .utils import NotGiven
 
 
 class CacheView:
     """CacheView class used to cache API responses."""
 
-    def __init__(self, *keys: BaseKey, timeout: int | None = None) -> None:
+    def __init__(  # noqa: C901
+        self, *keys: BaseKey, timeout: int | None | Sentinel = NotGiven
+    ) -> None:
         """
         Create an instance of the CacheView class.
 
         :param keys: the keys used to generate the cache key.
         :type keys: BaseKey
-        :param timeout: the cache timeout, defaults to None.
-        :type timeout: int | None, optional
+        :param timeout: the cache timeout, defaults to NotGiven.
+        :type timeout: int | None | Sentinel, optional
         :raises CacheNotSupportedError: if the specified cache is not supported.
         :raises HeaderNotSupportedError: if the age header is passed and the specified cache does not support it.
         :raises HeaderNotSupportedError: if the age header is passed and the specified cache does not support it.
@@ -84,10 +88,23 @@ class CacheView:
             and self.settings.HEADERS is not None
         ):
             if "age" in self.settings.HEADERS:
-                raise HeaderNotSupportedError(self.cache, "age")
+                raise HeaderNotSupportedError(
+                    "age",  # noqa: EM101
+                    f"{self.cache.__class__.__name__} does not implement it.",
+                )
 
             if "expires" in self.settings.HEADERS:
-                raise HeaderNotSupportedError(self.cache, "expires")
+                raise HeaderNotSupportedError(
+                    "expires",  # noqa: EM101
+                    f"{self.cache.__class__.__name__} does not implement it.",
+                )
+
+        if timeout is None or self.settings.TIMEOUT is None:
+            if "age" in self.settings.HEADERS:
+                raise HeaderNotSupportedError("age", "cache timeout is None.")  # noqa: EM101
+
+            if "cache-control" in self.settings.HEADERS:
+                raise HeaderNotSupportedError("cache-control", "cache timeout is None.")  # noqa: EM101
 
         self.headers = self.settings.HEADERS
 
@@ -98,19 +115,23 @@ class CacheView:
 
         self.keys = keys
 
-        if timeout is None and self.settings.TIMEOUT is None:
+        if timeout is NotGiven and self.settings.TIMEOUT is NotGiven:
             msg = "timeout must be either defined in the settings or passed as an argument."
             raise InvalidArgumentError(msg)
 
-        if timeout is not None and not isinstance(timeout, int):
+        if (
+            timeout is not None
+            and timeout is not NotGiven
+            and not isinstance(timeout, int)
+        ):
             msg = "timeout must be an integer."
             raise InvalidArgumentError(msg)
 
-        if timeout is not None and timeout < 0:
+        if isinstance(timeout, int) and timeout < 0:
             msg = "timeout must be >= 0."
             raise InvalidArgumentError(msg)
 
-        self.timeout = self.settings.TIMEOUT if timeout is None else timeout
+        self.timeout = self.settings.TIMEOUT if timeout is NotGiven else timeout
 
     def __call__(self, func: Callable[..., Response]) -> Callable[..., Response]:
         """
@@ -308,18 +329,16 @@ class CacheView:
                 response.headers["X-Cache"] = "MISS"
 
             response.render()
-
-            if self.timeout > 0:
-                self.cache.set(
-                    key,
-                    (
-                        response.status_code,
-                        response.content,
-                        response.headers,
-                        response.accepted_media_type,
-                    ),
-                    self.timeout,
-                )
+            self.cache.set(
+                key,
+                (
+                    response.status_code,
+                    response.content,
+                    response.headers,
+                    response.accepted_media_type,
+                ),
+                self.timeout,
+            )
 
         else:
             response.render()

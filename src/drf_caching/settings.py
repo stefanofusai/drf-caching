@@ -3,6 +3,9 @@ from typing import Literal
 from django.core.cache import caches
 from pydantic import BaseModel, field_validator
 
+from .sentinels import Sentinel
+from .utils import NotGiven
+
 
 class Settings(BaseModel):
     """
@@ -20,7 +23,7 @@ class Settings(BaseModel):
         "expires",
         "x-cache",
     ]
-    TIMEOUT: int | None = None
+    TIMEOUT: int | None | Sentinel = NotGiven
 
     @field_validator("CACHE")
     @classmethod
@@ -42,17 +45,17 @@ class Settings(BaseModel):
 
     @field_validator("TIMEOUT")
     @classmethod
-    def validate_timeout(cls, v: int) -> int:
+    def validate_timeout(cls, v: int | None | Sentinel) -> int | None | Sentinel:
         """
         Validate the TIMEOUT field.
 
         :param v: The TIMEOUT field.
-        :type v: int
+        :type v: int | None | Sentinel
         :raises ValueError: if TIMEOUT is less than 0.
         :return: The TIMEOUT field.
-        :rtype: int
+        :rtype: int | None | Sentinel
         """
-        if v < 0:
+        if isinstance(v, int) and v < 0:
             msg = "timeout must be >= 0."
             raise ValueError(msg)
 
