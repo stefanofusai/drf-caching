@@ -14,7 +14,7 @@ class CacheNotSupportedError(Exception):
 class HeaderNotSupportedError(Exception):
     """Raised when the specified header is not supported."""
 
-    def __init__(self, header: str, reason: str) -> None:  # noqa: D107
+    def __init__(self, header: str, *, reason: str) -> None:  # noqa: D107
         super().__init__(f"`The `{header}` header is not supported: {reason}.")
 
 

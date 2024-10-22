@@ -90,21 +90,24 @@ class CacheView:
             if "age" in self.settings.HEADERS:
                 raise HeaderNotSupportedError(
                     "age",  # noqa: EM101
-                    f"{self.cache.__class__.__name__} does not implement it.",
+                    reason=f"{self.cache.__class__.__name__} does not implement it.",
                 )
 
             if "expires" in self.settings.HEADERS:
                 raise HeaderNotSupportedError(
                     "expires",  # noqa: EM101
-                    f"{self.cache.__class__.__name__} does not implement it.",
+                    reason=f"{self.cache.__class__.__name__} does not implement it.",
                 )
 
         if timeout is None or self.settings.TIMEOUT is None:
             if "age" in self.settings.HEADERS:
-                raise HeaderNotSupportedError("age", "cache timeout is None.")  # noqa: EM101
+                raise HeaderNotSupportedError("age", reason="cache timeout is None.")  # noqa: EM101
 
             if "cache-control" in self.settings.HEADERS:
-                raise HeaderNotSupportedError("cache-control", "cache timeout is None.")  # noqa: EM101
+                raise HeaderNotSupportedError(
+                    "cache-control",  # noqa: EM101
+                    reason="cache timeout is None.",
+                )
 
         self.headers = self.settings.HEADERS
 
