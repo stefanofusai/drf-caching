@@ -1,7 +1,7 @@
 from typing import Literal
 
 from django.core.cache import caches
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from .sentinels import Sentinel
 from .utils import NotGiven
@@ -14,6 +14,8 @@ class Settings(BaseModel):
     :param BaseModel: Pydantic BaseModel.
     :type BaseModel: BaseModel
     """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     CACHE: str | None = "default"
     HEADERS: list[Literal["age", "cache-control", "etag", "expires", "x-cache"]] = [

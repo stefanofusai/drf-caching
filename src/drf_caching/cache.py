@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from datetime import UTC, datetime
 from functools import wraps
-from typing import Any
+from typing import Any, Literal
 
 from bs4 import BeautifulSoup
 from django.conf import settings as django_settings
@@ -146,7 +146,9 @@ class CacheView:
             RedisCache: lambda: None,
         }[type(self.cache)]()
 
-    def _get_headers(self, timeout: int | None | Sentinel) -> Settings.HEADERS:
+    def _get_headers(
+        self, timeout: int | None | Sentinel
+    ) -> list[Literal["age", "cache-control", "etag", "expires", "x-cache"]]:
         if (
             isinstance(
                 self.cache,
@@ -162,23 +164,23 @@ class CacheView:
             if "age" in self.settings.HEADERS:
                 raise HeaderNotSupportedError(
                     "age",  # noqa: EM101
-                    reason=f"{self.cache.__class__.__name__} does not implement it.",
+                    reason=f"{self.cache.__class__.__name__} does not implement it",
                 )
 
             if "expires" in self.settings.HEADERS:
                 raise HeaderNotSupportedError(
                     "expires",  # noqa: EM101
-                    reason=f"{self.cache.__class__.__name__} does not implement it.",
+                    reason=f"{self.cache.__class__.__name__} does not implement it",
                 )
 
         if timeout is None or self.settings.TIMEOUT is None:
             if "age" in self.settings.HEADERS:
-                raise HeaderNotSupportedError("age", reason="cache timeout is None.")  # noqa: EM101
+                raise HeaderNotSupportedError("age", reason="cache timeout is None")  # noqa: EM101
 
             if "cache-control" in self.settings.HEADERS:
                 raise HeaderNotSupportedError(
                     "cache-control",  # noqa: EM101
-                    reason="cache timeout is None.",
+                    reason="cache timeout is None",
                 )
 
         return self.settings.HEADERS
