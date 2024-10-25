@@ -103,7 +103,7 @@ class BaseKeyWithFields(BaseKey):
         """
         for field in fields:
             if not isinstance(field, str):
-                msg = f"field must be a str, not {type(field)}."
+                msg = f"field must be a str, not {type(field)}"
                 raise InvalidArgumentError(msg)
 
         self.fields = fields

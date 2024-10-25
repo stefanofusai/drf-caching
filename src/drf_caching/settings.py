@@ -40,7 +40,7 @@ class Settings(BaseModel):
         :rtype: str
         """
         if v not in caches:
-            msg = f"Cache `{v}` not found in Django settings."
+            msg = f"Cache `{v}` not found in Django settings"
             raise ValueError(msg)
 
         return v
@@ -58,7 +58,7 @@ class Settings(BaseModel):
         :rtype: int | None | Sentinel
         """
         if isinstance(v, int) and v < 0:
-            msg = "timeout must be >= 0."
+            msg = "timeout must be >= 0"
             raise ValueError(msg)
 
         return v

@@ -211,7 +211,7 @@ class CacheView:
     def _get_keys(self, keys: tuple[BaseKey, ...]) -> tuple[BaseKey, ...]:
         for key in keys:
             if not isinstance(key, BaseKey):
-                msg = "key must be an instance of BaseKey."
+                msg = "key must be an instance of BaseKey"
                 raise InvalidArgumentError(msg)
 
         return keys
@@ -348,7 +348,7 @@ class CacheView:
             raise MissingSettingsError from None
 
         if not isinstance(settings, dict):
-            msg = "settings must be a dictionary."
+            msg = "settings must be a dictionary"
             raise InvalidSettingsError(msg)
 
         try:
@@ -359,7 +359,7 @@ class CacheView:
 
     def _get_timeout(self, timeout: int | None | Sentinel) -> int | None:
         if timeout is NotGiven and self.settings.TIMEOUT is NotGiven:
-            msg = "timeout must be either defined in the settings or passed as an argument."
+            msg = "timeout must be either defined in the settings or passed as an argument"
             raise InvalidArgumentError(msg)
 
         if (
@@ -367,11 +367,11 @@ class CacheView:
             and timeout is not NotGiven
             and not isinstance(timeout, int)
         ):
-            msg = "timeout must be either None or an integer."
+            msg = "timeout must be either None or an integer"
             raise InvalidArgumentError(msg)
 
         if isinstance(timeout, int) and timeout < 0:
-            msg = "timeout must be >= 0."
+            msg = "timeout must be >= 0"
             raise InvalidArgumentError(msg)
 
         return self.settings.TIMEOUT if timeout is NotGiven else timeout
