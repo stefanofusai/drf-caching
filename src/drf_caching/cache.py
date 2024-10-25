@@ -367,7 +367,7 @@ class CacheView:
             and timeout is not NotGiven
             and not isinstance(timeout, int)
         ):
-            msg = "timeout must be an integer."
+            msg = "timeout must be either None or an integer."
             raise InvalidArgumentError(msg)
 
         if isinstance(timeout, int) and timeout < 0:
