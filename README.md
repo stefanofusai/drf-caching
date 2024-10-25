@@ -56,7 +56,8 @@ DRF_CACHING = {
 }
 ```
 
-To disable caching for a specific view, or even globally, you can set `timeout` to `0`.
+To disable caching for a specific view, or even globally, you can set `timeout` or `TIMEOUT` to `0`.
+To make it so that cache keys never expire for a specific view, or even globally, you can set `timeout` or `TIMEOUT` to `None`.
 
 The following settings are available:
 
