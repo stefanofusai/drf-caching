@@ -5,11 +5,11 @@ from collections import defaultdict
 from collections.abc import Callable
 from datetime import UTC, datetime
 from functools import wraps
-from typing import Any
+from typing import Any, Literal
 
 from bs4 import BeautifulSoup
 from django.conf import settings as django_settings
-from django.core.cache import caches
+from django.core.cache import BaseCache, caches
 from django.core.cache.backends.db import DatabaseCache
 from django.core.cache.backends.dummy import DummyCache
 from django.core.cache.backends.filebased import FileBasedCache
@@ -31,20 +31,24 @@ from .exceptions import (
     MissingSettingsError,
 )
 from .keys import BaseKey
+from .sentinels import Sentinel
 from .settings import Settings
+from .utils import NotGiven
 
 
 class CacheView:
     """CacheView class used to cache API responses."""
 
-    def __init__(self, *keys: BaseKey, timeout: int | None = None) -> None:
+    def __init__(
+        self, *keys: BaseKey, timeout: int | None | Sentinel = NotGiven
+    ) -> None:
         """
         Create an instance of the CacheView class.
 
         :param keys: the keys used to generate the cache key.
         :type keys: BaseKey
-        :param timeout: the cache timeout, defaults to None.
-        :type timeout: int | None, optional
+        :param timeout: the cache timeout, defaults to NotGiven.
+        :type timeout: int | None | Sentinel, optional
         :raises CacheNotSupportedError: if the specified cache is not supported.
         :raises HeaderNotSupportedError: if the age header is passed and the specified cache does not support it.
         :raises HeaderNotSupportedError: if the age header is passed and the specified cache does not support it.
@@ -54,63 +58,10 @@ class CacheView:
         :raises InvalidArgumentError: if the timeout is neither defined in the settings nor passed as an argument.
         """
         self.settings = self._get_settings()
-        cache = caches[self.settings.CACHE]
-
-        if not isinstance(
-            cache,
-            DatabaseCache
-            | DjangoRedisCache
-            | DummyCache
-            | FileBasedCache
-            | PyLibMCCache
-            | PyMemcacheCache
-            | RedisCache
-            | LocMemCache,
-        ):
-            raise CacheNotSupportedError(cache)
-
-        self.cache = cache
-
-        if (
-            isinstance(
-                self.cache,
-                DatabaseCache
-                | DummyCache
-                | FileBasedCache
-                | PyLibMCCache
-                | PyMemcacheCache
-                | RedisCache,
-            )
-            and self.settings.HEADERS is not None
-        ):
-            if "age" in self.settings.HEADERS:
-                raise HeaderNotSupportedError(self.cache, "age")
-
-            if "expires" in self.settings.HEADERS:
-                raise HeaderNotSupportedError(self.cache, "expires")
-
-        self.headers = self.settings.HEADERS
-
-        for key in keys:
-            if not isinstance(key, BaseKey):
-                msg = "key must be an instance of BaseKey."
-                raise InvalidArgumentError(msg)
-
-        self.keys = keys
-
-        if timeout is None and self.settings.TIMEOUT is None:
-            msg = "timeout must be either defined in the settings or passed as an argument."
-            raise InvalidArgumentError(msg)
-
-        if timeout is not None and not isinstance(timeout, int):
-            msg = "timeout must be an integer."
-            raise InvalidArgumentError(msg)
-
-        if timeout is not None and timeout < 0:
-            msg = "timeout must be >= 0."
-            raise InvalidArgumentError(msg)
-
-        self.timeout = self.settings.TIMEOUT if timeout is None else timeout
+        self.cache = self._get_cache()
+        self.headers = self._get_headers(timeout)
+        self.keys = self._get_keys(keys)
+        self.timeout = self._get_timeout(timeout)
 
     def __call__(self, func: Callable[..., Response]) -> Callable[..., Response]:
         """
@@ -160,6 +111,24 @@ class CacheView:
             case _:
                 return age
 
+    def _get_cache(self) -> BaseCache:
+        cache = caches[self.settings.CACHE]
+
+        if not isinstance(
+            cache,
+            DatabaseCache
+            | DjangoRedisCache
+            | DummyCache
+            | FileBasedCache
+            | PyLibMCCache
+            | PyMemcacheCache
+            | RedisCache
+            | LocMemCache,
+        ):
+            raise CacheNotSupportedError(cache)
+
+        return cache
+
     def _get_expires(self, key: str) -> str | None:
         return {
             DatabaseCache: lambda: None,
@@ -176,6 +145,45 @@ class CacheView:
             PyMemcacheCache: lambda: None,
             RedisCache: lambda: None,
         }[type(self.cache)]()
+
+    def _get_headers(
+        self, timeout: int | None | Sentinel
+    ) -> list[Literal["age", "cache-control", "etag", "expires", "x-cache"]]:
+        if (
+            isinstance(
+                self.cache,
+                DatabaseCache
+                | DummyCache
+                | FileBasedCache
+                | PyLibMCCache
+                | PyMemcacheCache
+                | RedisCache,
+            )
+            and self.settings.HEADERS is not None
+        ):
+            if "age" in self.settings.HEADERS:
+                raise HeaderNotSupportedError(
+                    "age",  # noqa: EM101
+                    reason=f"{self.cache.__class__.__name__} does not implement it",
+                )
+
+            if "expires" in self.settings.HEADERS:
+                raise HeaderNotSupportedError(
+                    "expires",  # noqa: EM101
+                    reason=f"{self.cache.__class__.__name__} does not implement it",
+                )
+
+        if timeout is None or self.settings.TIMEOUT is None:
+            if "age" in self.settings.HEADERS:
+                raise HeaderNotSupportedError("age", reason="cache timeout is None")  # noqa: EM101
+
+            if "cache-control" in self.settings.HEADERS:
+                raise HeaderNotSupportedError(
+                    "cache-control",  # noqa: EM101
+                    reason="cache timeout is None",
+                )
+
+        return self.settings.HEADERS
 
     def _get_key(
         self,
@@ -199,6 +207,14 @@ class CacheView:
             )
 
         return hashlib.md5(json.dumps(key_dict, sort_keys=True).encode()).hexdigest()  # noqa: S324
+
+    def _get_keys(self, keys: tuple[BaseKey, ...]) -> tuple[BaseKey, ...]:
+        for key in keys:
+            if not isinstance(key, BaseKey):
+                msg = "key must be an instance of BaseKey"
+                raise InvalidArgumentError(msg)
+
+        return keys
 
     def _get_response(
         self,
@@ -308,18 +324,16 @@ class CacheView:
                 response.headers["X-Cache"] = "MISS"
 
             response.render()
-
-            if self.timeout > 0:
-                self.cache.set(
-                    key,
-                    (
-                        response.status_code,
-                        response.content,
-                        response.headers,
-                        response.accepted_media_type,
-                    ),
-                    self.timeout,
-                )
+            self.cache.set(
+                key,
+                (
+                    response.status_code,
+                    response.content,
+                    response.headers,
+                    response.accepted_media_type,
+                ),
+                self.timeout,
+            )
 
         else:
             response.render()
@@ -334,7 +348,7 @@ class CacheView:
             raise MissingSettingsError from None
 
         if not isinstance(settings, dict):
-            msg = "settings must be a dictionary."
+            msg = "settings must be a dictionary"
             raise InvalidSettingsError(msg)
 
         try:
@@ -342,6 +356,25 @@ class CacheView:
 
         except ValidationError as e:
             raise InvalidSettingsError(e) from None
+
+    def _get_timeout(self, timeout: int | None | Sentinel) -> int | None:
+        if timeout is NotGiven and self.settings.TIMEOUT is NotGiven:
+            msg = "timeout must be either defined in the settings or passed as an argument"
+            raise InvalidArgumentError(msg)
+
+        if (
+            timeout is not None
+            and timeout is not NotGiven
+            and not isinstance(timeout, int)
+        ):
+            msg = "timeout must be either None or an integer"
+            raise InvalidArgumentError(msg)
+
+        if isinstance(timeout, int) and timeout < 0:
+            msg = "timeout must be >= 0"
+            raise InvalidArgumentError(msg)
+
+        return self.settings.TIMEOUT if timeout is NotGiven else timeout
 
 
 cache_view = CacheView
