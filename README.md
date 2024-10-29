@@ -84,6 +84,12 @@ class CustomKeyWithFields(BaseKeyWithFields):
         }
 ```
 
+## Development
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Acknowledgments
 
 This project was strongly inspired by [drf-extensions](https://github.com/chibisov/drf-extensions).
