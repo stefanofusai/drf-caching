@@ -88,6 +88,8 @@ class CustomKeyWithFields(BaseKeyWithFields):
 
 ```bash
 pip install -r requirements.txt
+pre-commit install --install-hooks
+pre-commit install --hook-type commit-msg
 ```
 
 ## Acknowledgments
