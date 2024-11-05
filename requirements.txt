@@ -10,7 +10,7 @@ cfgv==3.4.0
     # via pre-commit
 distlib==0.3.8
     # via virtualenv
-django==5.1.2
+django==5.1.3
     # via
     #   -r requirements.in
     #   django-redis
