@@ -15,7 +15,6 @@ from .keys import (
 )
 
 __all__ = [
-    "cache_view",
     "BaseKey",
     "BaseKeyWithFields",
     "GetObjectKey",
@@ -28,4 +27,5 @@ __all__ = [
     "RequestPaginationKey",
     "RequestQueryParamsKey",
     "RequestUserKey",
+    "cache_view",
 ]
