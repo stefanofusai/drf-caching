@@ -2,10 +2,12 @@
 
 Handle views caching in Django Rest Framework.
 
+This package uses [uv](https://docs.astral.sh/uv/) for project management. To get started, ensure that **uv** is installed on your machine and updated to the `0.5.6` version. Detailed installation instructions for **uv** can be found [here](https://docs.astral.sh/uv/getting-started/installation/).
+
 ## Installation
 
 ```bash
-pip install drf-caching
+uv add drf-caching
 ```
 
 ## Usage
@@ -87,9 +89,9 @@ class CustomKeyWithFields(BaseKeyWithFields):
 ## Development
 
 ```bash
-pip install -r requirements.txt
-pre-commit install --install-hooks
-pre-commit install --hook-type commit-msg
+uv sync
+uv run pre-commit install --install-hooks
+uv run pre-commit install --hook-type=commit-msg
 ```
 
 ## Acknowledgments

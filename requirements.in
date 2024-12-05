@@ -1,8 +1,0 @@
-beautifulsoup4
-django
-django-redis
-djangorestframework
-lxml
-pre-commit
-pydantic
-ruff
