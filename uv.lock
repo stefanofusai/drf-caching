@@ -98,8 +98,12 @@ dependencies = [
     { name = "django-redis" },
     { name = "djangorestframework" },
     { name = "lxml" },
-    { name = "pre-commit" },
     { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+development = [
+    { name = "pre-commit" },
     { name = "ruff" },
 ]
 
@@ -110,8 +114,12 @@ requires-dist = [
     { name = "django-redis", specifier = "==5.4.0" },
     { name = "djangorestframework", specifier = "==3.15.2" },
     { name = "lxml", specifier = "==5.3.0" },
-    { name = "pre-commit", specifier = "==4.0.1" },
     { name = "pydantic", specifier = "==2.10.3" },
+]
+
+[package.metadata.requires-dev]
+development = [
+    { name = "pre-commit", specifier = "==4.0.1" },
     { name = "ruff", specifier = "==0.8.2" },
 ]
 

@@ -89,7 +89,7 @@ class CustomKeyWithFields(BaseKeyWithFields):
 ## Development
 
 ```bash
-uv sync
+uv sync --group=development
 uv run pre-commit install --install-hooks
 uv run pre-commit install --hook-type=commit-msg
 ```
