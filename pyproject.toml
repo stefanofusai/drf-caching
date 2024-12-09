@@ -63,7 +63,7 @@ ignore = [
     "D104",
 ]
 
-[tool.ruff.lint.extend-per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "src/drf_caching/sentinels.py" = ["ALL"]
 
 [tool.ruff.lint.isort]
