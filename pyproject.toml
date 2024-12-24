@@ -1,6 +1,6 @@
 [project]
 name = "drf-caching"
-version = "1.4.0"
+version = "1.5.0"
 description = "Handle views caching in Django Rest Framework."
 readme = "README.md"
 authors = [
@@ -11,12 +11,12 @@ maintainers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "beautifulsoup4==4.12.3",
-    "django==5.1.4",
-    "django-redis==5.4.0",
-    "djangorestframework==3.15.2",
-    "lxml==5.3.0",
-    "pydantic==2.10.4",
+    "beautifulsoup4>=4.0.1,<5.0.0",
+    "django>=5.0.0,<6.0.0",
+    "django-redis>=5.0.0,<6.0.0",
+    "djangorestframework>=3.0.0,<4.0.0",
+    "lxml>=5.0.1,<6.0.0",
+    "pydantic>=2.8.0,<3.0.0",
 ]
 
 [project.urls]
