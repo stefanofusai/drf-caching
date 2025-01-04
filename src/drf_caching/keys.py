@@ -129,7 +129,7 @@ class GetObjectKey(BaseKey):
         for field in obj._meta.get_fields():  # noqa: SLF001
             _attr = getattr(obj, field.name)
             data[field.name] = (
-                _attr.all().values_list() if isinstance(_attr, Manager) else _attr
+                list(_attr.all().values_list()) if isinstance(_attr, Manager) else _attr
             )
 
         return data
@@ -148,7 +148,7 @@ class GetQuerylistKey(BaseKey):
     ) -> dict[str, Any]:
         return {
             "querylist": [
-                querylist["queryset"].values_list()
+                list(querylist["queryset"].values_list())
                 for querylist in view_instance.filter_queryset(
                     view_instance.get_querylist()
                 )
@@ -168,9 +168,11 @@ class GetQuerysetKey(BaseKey):
         **kwargs: Any,
     ) -> dict[str, Any]:
         return {
-            "queryset": view_instance.filter_queryset(
-                view_instance.get_queryset()
-            ).values_list()
+            "queryset": list(
+                view_instance.filter_queryset(
+                    view_instance.get_queryset()
+                ).values_list()
+            )
         }
 
 
