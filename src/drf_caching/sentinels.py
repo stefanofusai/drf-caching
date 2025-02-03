@@ -51,7 +51,7 @@ class Sentinel:
         module_name: str | None = None,
     ):
         name = str(name)
-        repr = str(repr) if repr else f'<{name.split(".")[-1]}>'
+        repr = str(repr) if repr else f"<{name.split('.')[-1]}>"
         if not module_name:
             parent_frame = _get_parent_frame()
             module_name = (

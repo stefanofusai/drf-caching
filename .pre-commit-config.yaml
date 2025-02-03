@@ -46,7 +46,7 @@ repos:
           - -d
           - "{extends: default, rules: {comments: {min-spaces-from-content: 1}, document-start: {present: false}, line-length: disable}}"
   - repo: https://github.com/google/yamlfmt
-    rev: v0.14.0
+    rev: v0.15.0
     hooks:
       - id: yamlfmt
         args:
@@ -58,7 +58,7 @@ repos:
     hooks:
       - id: pyupgrade
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.9.4
     hooks:
       - id: ruff
         args:
@@ -66,6 +66,6 @@ repos:
       - id: ruff-format
   # Dependency management
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.5.13
+    rev: 0.5.26
     hooks:
       - id: uv-lock
