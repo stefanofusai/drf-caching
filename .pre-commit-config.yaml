@@ -66,6 +66,6 @@ repos:
       - id: ruff-format
   # Dependency management
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.5.13
+    rev: 0.5.29
     hooks:
       - id: uv-lock
